@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#0a0c10;color:#c8d8e8;font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden;}
+  .scanline{position:fixed;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:10;}
+  .grid-bg{position:fixed;top:0;left:0;width:100%;height:100%;background-image:linear-gradient(rgba(0,255,180,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,180,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+  header{padding:3rem 2rem 2rem;border-bottom:1px solid rgba(0,255,180,0.15);}
+  .header-inner{max-width:960px;margin:0 auto;}
+  .tag{font-family:'Share Tech Mono',monospace;font-size:11px;color:#00ffb4;letter-spacing:3px;text-transform:uppercase;margin-bottom:.5rem;opacity:.7;}
+  h1{font-size:2.8rem;font-weight:700;color:#e8f4ff;letter-spacing:2px;line-height:1.1;}
+  h1 span{color:#00ffb4;}
+  .subtitle{font-family:'Share Tech Mono',monospace;font-size:12px;color:#5a7a8a;margin-top:.75rem;letter-spacing:2px;}
+  .status-bar{display:flex;gap:1.5rem;margin-top:1.5rem;flex-wrap:wrap;}
+  .status-item{display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:11px;color:#5a7a8a;}
+  .dot{width:6px;height:6px;border-radius:50%;background:#00ffb4;box-shadow:0 0 6px #00ffb4;animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  nav{max-width:960px;margin:0 auto;padding:1.5rem 2rem;display:flex;gap:.5rem;flex-wrap:wrap;}
+  .nav-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;padding:6px 14px;border:1px solid rgba(0,255,180,.2);background:transparent;color:#5a8a7a;cursor:pointer;transition:all .2s;text-transform:uppercase;}
+  .nav-btn:hover,.nav-btn.active{border-color:#00ffb4;color:#00ffb4;background:rgba(0,255,180,.05);}
+  main{max-width:960px;margin:0 auto;padding:1rem 2rem 4rem;}
+  .section{display:none;}
+  .section.visible{display:block;animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .section-header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:1px solid rgba(0,255,180,.1);}
+  .section-icon{font-size:18px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,255,180,.25);background:rgba(0,255,180,.05);color:#00ffb4;}
+  .section-title{font-size:1rem;font-weight:600;color:#00ffb4;letter-spacing:3px;text-transform:uppercase;font-family:'Share Tech Mono',monospace;}
+  .devices-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1px;background:rgba(0,255,180,.08);border:1px solid rgba(0,255,180,.08);}
+  .device-card{background:#0d1117;padding:1.5rem;cursor:pointer;transition:background .2s;position:relative;overflow:hidden;}
+  .device-card::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:#00ffb4;transform:scaleY(0);transition:transform .25s;transform-origin:bottom;}
+  .device-card:hover{background:#111820;}
+  .device-card:hover::before{transform:scaleY(1);}
+  .device-num{font-family:'Share Tech Mono',monospace;font-size:10px;color:#2a4a5a;letter-spacing:2px;margin-bottom:.75rem;}
+  .device-name{font-size:1.05rem;font-weight:600;color:#d0e8f8;margin-bottom:4px;letter-spacing:1px;}
+  .device-model{font-family:'Share Tech Mono',monospace;font-size:11px;color:#3a6a7a;margin-bottom:1rem;}
+  .device-specs{display:flex;flex-direction:column;gap:4px;}
+  .spec-row{display:flex;justify-content:space-between;font-size:12px;font-family:'Share Tech Mono',monospace;}
+  .spec-key{color:#2a5a6a;}
+  .spec-val{color:#6ab8a8;}
+  .device-tag{display:inline-block;margin-top:1rem;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:3px 8px;border:1px solid rgba(0,255,180,.2);color:#00ffb4;opacity:.6;}
+  .more-btn{position:absolute;bottom:12px;right:12px;font-family:'Share Tech Mono',monospace;font-size:11px;color:#00ffb4;letter-spacing:1px;opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s;display:flex;align-items:center;gap:2px;pointer-events:none;user-select:none;}
+  .device-card:hover .more-btn{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .more-dots{display:inline-flex;gap:2px;align-items:center;}
+  .more-dots span{display:inline-block;width:3px;height:3px;border-radius:50%;background:#00ffb4;animation:dotBlink 1.2s infinite;}
+  .more-dots span:nth-child(2){animation-delay:.2s;}
+  .more-dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes dotBlink{0%,100%{opacity:.2}50%{opacity:1}}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(2px);}
+  .modal-overlay.open{opacity:1;pointer-events:auto;}
+  .modal{background:#0d1117;border:1px solid rgba(0,255,180,.25);width:min(560px,92vw);max-height:90vh;overflow-y:auto;position:relative;transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s;opacity:0;}
+  .modal-overlay.open .modal{transform:translateY(0) scale(1);opacity:1;}
+  .modal-top{padding:1.5rem;border-bottom:1px solid rgba(0,255,180,.1);display:flex;justify-content:space-between;align-items:flex-start;}
+  .modal-num{font-family:'Share Tech Mono',monospace;font-size:10px;color:#2a4a5a;letter-spacing:2px;margin-bottom:.4rem;}
+  .modal-name{font-size:1.4rem;font-weight:700;color:#e8f4ff;letter-spacing:2px;}
+  .modal-model{font-family:'Share Tech Mono',monospace;font-size:12px;color:#3a6a7a;margin-top:4px;}
+  .modal-close{background:transparent;border:1px solid rgba(0,255,180,.2);color:#5a8a7a;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+  .modal-close:hover{border-color:#00ffb4;color:#00ffb4;}
+  .modal-body{padding:1.5rem;}
+  .modal-section-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:#2a5a5a;letter-spacing:3px;text-transform:uppercase;margin-bottom:.75rem;margin-top:1.25rem;}
+  .modal-specs-table{width:100%;border-collapse:collapse;}
+  .modal-specs-table tr{border-bottom:1px solid rgba(0,255,180,.05);}
+  .modal-specs-table td{padding:8px 0;font-family:'Share Tech Mono',monospace;font-size:12px;}
+  .modal-specs-table td:first-child{color:#2a5a6a;width:40%;}
+  .modal-specs-table td:last-child{color:#6ab8a8;}
+  .modal-tag{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:4px 10px;border:1px solid rgba(0,255,180,.3);color:#00ffb4;}
+  .modal-note{font-family:'Share Tech Mono',monospace;font-size:11px;color:#3a6a6a;line-height:1.7;background:rgba(0,255,180,.03);border-left:2px solid rgba(0,255,180,.2);padding:.75rem 1rem;}
+  .modal-corner{position:absolute;width:8px;height:8px;border:1px solid rgba(0,255,180,.4);border-width:0 0 1px 1px;}
+  .modal-corner.tl{top:-1px;left:-1px;border-width:1px 0 0 1px;}
+  .modal-corner.tr{top:-1px;right:-1px;border-width:1px 1px 0 0;}
+  .modal-corner.bl{bottom:-1px;left:-1px;border-width:0 0 1px 1px;}
+  .modal-corner.br{bottom:-1px;right:-1px;border-width:0 1px 1px 0;}
+  .form-input { width: 100%; background: rgba(0, 255, 180, 0.05); border: 1px solid rgba(0, 255, 180, 0.2); color: #e8f4ff; padding: 10px 12px; font-family: 'Share Tech Mono', monospace; margin-bottom: 12px; outline: none; font-size: 13px; }
+  .form-input:focus { border-color: #00ffb4; background: rgba(0, 255, 180, 0.1); }
+  .check-label { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #00ffb4; margin: 10px 0 20px; cursor: pointer; letter-spacing: 1px; }
+
+  /* --- Appleデバイス用の統一グリーンデザイン --- */
+  .device-card.apple-card::before { background: #00ffb4 !important; }
+  .apple-card .spec-val { color: #6ab8a8 !important; }
+  .apple-card .device-tag { border-color: rgba(0, 255, 180, 0.2) !important; color: #00ffb4 !important; }
+  .apple-card .more-btn { color: #00ffb4 !important; }
+  .apple-card .more-dots span { background: #00ffb4 !important; }
+  .modal.apple-modal { border: 1px solid rgba(0, 255, 180, 0.25) !important; }
+  .apple-modal .modal-top { border-bottom: 1px solid rgba(0, 255, 180, 0.1) !important; }
+  .apple-modal .modal-specs-table tr { border-bottom: 1px solid rgba(0, 255, 180, 0.05) !important; }
+  .apple-modal .modal-specs-table td:last-child { color: #6ab8a8 !important; }
+  .apple-modal .modal-tag { border: 1px solid rgba(0, 255, 180, 0.3) !important; color: #00ffb4 !important; }
+  .apple-modal .modal-note { border-left: 2px solid rgba(0, 255, 180, 0.2) !important; background: rgba(0, 255, 180, 0.03) !important; }
+  .apple-modal .modal-corner { border: 1px solid rgba(0, 255, 180, 0.4) !important; border-width: 0 0 1px 1px; }
+
+  /* --- ADD_DEVICEボタンの修正 --- */
+  .add-device-btn { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; min-height: 140px; border: 1px dashed rgba(0, 255, 180, 0.15); background: transparent; color: #2a5a5a; cursor: pointer; font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 2px; transition: all .2s; margin-top: 1px; width: 100%; }
+  .add-device-btn:hover { border-color: rgba(0, 255, 180, 0.4); color: #00ffb4; background: rgba(0, 255, 180, 0.03); }
+  .plus-icon { font-size: 24px; font-weight: 300; color: currentColor; line-height: 1; }
+
+  /* --- ANALYTICS部分の修正 --- */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1px; background: rgba(0, 255, 180, 0.08); border: 1px solid rgba(0, 255, 180, 0.08); margin-bottom: 2rem; }
+  .stat-card { background: #0d1117; padding: 1.25rem 1.5rem; text-align: center; }
+  .stat-num { font-family: 'Share Tech Mono', monospace; font-size: 2rem; color: #00ffb4; font-weight: 400; line-height: 1; }
+  .stat-label { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: #3a5a6a; letter-spacing: 2px; margin-top: 6px; text-transform: uppercase; }
+  .bar-section { margin-top: 2rem; }
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .bar-label { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #5a8a8a; width: 100px; letter-spacing: 1px; }
+  .bar-track { flex: 1; height: 4px; background: rgba(0, 255, 180, 0.1); }
+  .bar-fill { height: 100%; background: #00ffb4; opacity: .7; }
+  .bar-count { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #3a6a6a; width: 20px; text-align: right; }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="grid-bg"></div>
+<header>
+  <div class="header-inner">
+    <div class="tag">// MY DEVICES</div>
+    <h1>DEVICE <span>INVENTORY</span></h1>
+    <div class="subtitle">PERSONAL_TECH_COLLECTION.JSON — v1.3.0</div>
+    <div class="status-bar">
+      <div class="status-item"><div class="dot"></div> SYSTEM ONLINE</div>
+      <div class="status-item" id="total-count">DEVICES: —</div>
+      <div class="status-item">CATEGORIES: 5</div>
+      <div class="status-item">LAST_SYNC: 2026-04-29</div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showSection('all',this)">// ALL</button>
+  <button class="nav-btn apple-btn" onclick="showSection('apple',this)">// APPLE</button>
+  <button class="nav-btn" onclick="showSection('pc',this)">// PC/MAC</button>
+  <button class="nav-btn" onclick="showSection('phone',this)">// PHONE</button>
+  <button class="nav-btn" onclick="showSection('tablet',this)">// TABLET</button>
+  <button class="nav-btn" onclick="showSection('audio',this)">// AUDIO</button>
+  <button class="nav-btn" onclick="showSection('charging',this)">// CHARGING</button>
+  <button class="nav-btn" onclick="showSection('gadget',this)">// GADGET</button>
+  <button class="nav-btn" onclick="showSection('desk',this)">// DESK</button>
+  <button class="nav-btn" onclick="showSection('stats',this)">// STATS</button>
+</nav>
+
+<main>
+  <div class="section visible" id="sec-all">
+    <div class="section-header"><div class="section-icon">▣</div><div class="section-title">FULL_INVENTORY</div></div>
+    <div class="devices-grid" id="all-grid"></div>
+    <button class="add-device-btn" onclick="sendPrompt('このサイトにデバイスを追加したい。')">
+      <div class="plus-icon">+</div><div>ADD_DEVICE</div>
+    </button>
+  </div>
+  <div class="section" id="sec-apple">
+    <div class="section-header apple-header"><div class="section-icon apple-icon">✦</div><div class="section-title apple-title">APPLE_DEVICES</div></div>
+    <div class="devices-grid apple-grid" id="apple-grid"></div>
+  </div>
+  <div class="section" id="sec-pc"><div class="section-header"><div class="section-icon">□</div><div class="section-title">PC / MAC</div></div><div class="devices-grid" id="pc-grid"></div></div>
+  <div class="section" id="sec-phone"><div class="section-header"><div class="section-icon">◧</div><div class="section-title">SMARTPHONE</div></div><div class="devices-grid" id="phone-grid"></div></div>
+  <div class="section" id="sec-tablet"><div class="section-header"><div class="section-icon">◫</div><div class="section-title">TABLET</div></div><div class="devices-grid" id="tablet-grid"></div></div>
+  <div class="section" id="sec-audio"><div class="section-header"><div class="section-icon">▽</div><div class="section-title">AUDIO</div></div><div class="devices-grid" id="audio-grid"></div></div>
+  <div class="section" id="sec-charging"><div class="section-header"><div class="section-icon">◇</div><div class="section-title">CHARGING</div></div><div class="devices-grid" id="charging-grid"></div></div>
+  <div class="section" id="sec-gadget"><div class="section-header"><div class="section-icon">◎</div><div class="section-title">OTHER_GADGETS</div></div><div class="devices-grid" id="gadget-grid"></div></div>
+  <div class="section" id="sec-desk"><div class="section-header"><div class="section-icon">▣</div><div class="section-title">DESK_DEVICES</div></div><div class="devices-grid" id="desk-grid"></div></div>
+
+  <div class="section" id="sec-stats">
+    <div class="section-header"><div class="section-icon">▦</div><div class="section-title">ANALYTICS</div></div>
+    <div class="stats-grid" id="stats-cards"></div>
+    <div class="bar-section" id="stats-bars"></div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-corner tl"></div><div class="modal-corner tr"></div>
+    <div class="modal-corner bl"></div><div class="modal-corner br"></div>
+    <div class="modal-top">
+      <div>
+        <div class="modal-num" id="m-num"></div>
+        <div class="modal-name" id="m-name"></div>
+        <div class="modal-model" id="m-model"></div>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
+
+<script>
+const devices = [
+  {id:1,cat:'pc',name:'Windows PC',model:'Custom Build',specs:{CPU:'Core i5-12600KF',GPU:'RTX 3060 12GB',RAM:'DDR4 32GB',SSD:'1TB NVMe M.2',HDD:'1TB + 500GB SATA',OS:'Windows 11'},tag:'DESKTOP',note:'自作ゲーミングPC。'},
+  {id:2,cat:'pc',isApple:true,name:'MacBook Air',model:'13-inch / 2020 / Gold',specs:{CPU:'Intel Core i5 1.1GHz',RAM:'8GB LPDDR4X 3733MHz',STORAGE:'512GB PCIe SSD',DISPLAY:'13.3" Retina 2560×1600 True Tone',GPU:'Intel Iris Plus',PORT:'Thunderbolt 3 ×2 / 3.5mm',OS:'macOS'},tag:'NOTEBOOK',note:'2020 Intelモデル。'},
+  {id:3,cat:'phone',isApple:true,name:'iPhone 15 Pro',model:'256GB / Black Titanium',specs:{CHIP:'Apple A17 Pro',RAM:'8GB',STORAGE:'256GB',DISPLAY:'6.1" LTPO OLED 120Hz',CAMERA:'48MP + 12MP + 12MP',CONNECTOR:'USB-C (USB 3.2)',OS:'iOS 18'},tag:'MAIN',note:'チタンフレームで軽量化。'},
+  {id:4,cat:'phone',isApple:true,name:'iPhone SE',model:'2nd Gen / 64GB / White',specs:{CHIP:'Apple A13 Bionic',RAM:'3GB',STORAGE:'64GB',DISPLAY:'4.7" Retina HD IPS',CAMERA:'12MP f/1.8 + OIS',TOUCH:'Touch ID (ホームボタン)',OS:'iOS 17'},tag:'SUB',note:'コンパクトなサブ機。'},
+  {id:5,cat:'tablet',isApple:true,name:'iPad',model:'8th Gen / 128GB / Silver',specs:{CHIP:'Apple A12 Bionic',RAM:'3GB',STORAGE:'128GB',DISPLAY:'10.2" Retina IPS 264ppi',CAMERA:'8MP 後面 / 1.2MP 前面',PENCIL:'Apple Pencil 第1世代対応',OS:'iPadOS 18'},tag:'HOME',note:'リビングでの動画視聴。'},
+  {id:6,cat:'gadget',isApple:true,name:'Apple Watch SE',model:'3rd Gen / 44mm / Black',specs:{CHIP:'Apple S10',STORAGE:'64GB',DISPLAY:'Always-On Retina LTPO',GLASS:'Ion-X (4× crack resistant)',BATTERY:'18h / Fast Charging',HEALTH:'心拍・体温・睡眠・転倒検知',OS:'watchOS 11'},tag:'WEARABLE',note:'S10チップ搭載。'},
+  {id:7,cat:'audio',name:'Soundcore Liberty 4',model:'Hi-Res Audio / Midnight Black',specs:{Driver:'Dual Dynamic Drivers', Codec:'SBC / AAC / LDAC', Bluetooth:'ver 5.3'}, tag:'EARPHONES', note:''},
+  {id:8,cat:'audio',name:'Soundcore C40i',model:'Metallic Gray',specs:{Driver:'12mm × 17mm', Codec:'SBC / AAC', Bluetooth:'ver 5.4'}, tag:'EARPHONES', note:''},
+  {id:9,cat:'audio',name:'Soundcore V20i',model:'Black',specs:{Driver:'16mm Drivers', Codec:'SBC / AAC', Bluetooth:'ver 5.4'}, tag:'EARPHONES', note:''},
+  {id:10,cat:'audio',name:'final UX3000',model:'Black',specs:{Battery:'35 hours', Codec:'SBC / AAC / aptX / aptX LL', Bluetooth:'ver 5.0'}, tag:'HEADPHONES', note:''},
+  {id:11,cat:'audio',name:'Soundcore Select 4 Go',model:'Black',specs:{Battery:'20 hours', Codec:'SBC / AAC', Bluetooth:'ver 5.4'}, tag:'SPEAKER', note:''},
+  {id:12,cat:'audio',name:'JBL Clip 2',model:'Special Edition / Malta',specs:{Battery:'8 hours', Codec:'SBC', Bluetooth:'ver 4.2'}, tag:'SPEAKER', note:''},
+  {id:13,cat:'gadget',isApple:true,name:'iPod nano',model:'7th gen / Gold, Blue, Green',specs:{DISPLAY:'2.5 inch', Bluetooth:'ver 4.0', STORAGE:'16GB'}, tag:'PLAYER', note:''},
+  {id:14,cat:'gadget',isApple:true,name:'iPod touch',model:'7th gen / Space Gray',specs:{CHIP:'Apple A10 Fusion', Bluetooth:'ver 4.1', STORAGE:'32GB'}, tag:'PLAYER', note:''},
+  {id:15,cat:'gadget',name:'WALKMAN NW-A55',model:'Hi-res Audio / Grayish Black',specs:{DISPLAY:'3.1 inch', Bluetooth:'ver 4.2', STORAGE:'16 GB'}, tag:'PLAYER', note:''},
+  {id:16, cat:'charging', name:'Belkin BoostCharge Pro', model:'Convertible Magnetic Charging Stand', specs:{Color:'Black',Output:'Qi2 15W',Power:'USB-C'}, tag:'MAGSAFE', note:'サブ充電器'},
+  {id:17, cat:'charging', name:'Anker MagGo Wireless Charging Station', model:'3-in-1 Stand', specs:{Color:'White',Output:'Qi2 15W / Watch 5W / Qi 5W'}, tag:'MAGSAFE', note:'メイン充電器'},
+  {id:18, cat:'charging', name:'Anker MagGo Power Bank', model:'10,000 mAh / Slim', specs:{Color:'Black',Output:'Qi2 15W / USB-C 30W',Power:'USB-C'}, tag:'BATTERY', note:'モバイルバッテリー'},
+  {id:19, cat:'desk', name:'MAG 274QF', model:'27 inch / Rapid IPS', specs:{Resolution:'WQHD 2560 x 1440',Refreshrate:'180 Hz',Input:'HDMI x2 / DisplayPort x1'}, tag:'MONITOR', note:'モニター'},
+  {id:20, cat:'desk', name:'ELECOM Wireless Keyboard', model:'109 key / Black', specs:{Connect:'Bluetooth',Type:'Membrane',Size:'width 44.7cm'}, tag:'KEYBOARD', note:'キーボード'},
+  {id:21, cat:'desk', name:'ELECOM EX-G', model:'5-button / Black', specs:{Connect:'USB 2.4GHz',Sensor:'Blue LED',Size:'L size'}, tag:'MOUSE', note:'マウス'},
+  {id:22, cat:'desk', name:'Anker HDMI Switch', model:'4-in-1 Out / Gray', specs:{Protocol:'HDMI 2.0',Resolution:'4K / 60Hz',Power:'USB-C'}, tag:'VISUAL', note:'AnkerのHDMI切り替え器'},
+  {id:23, cat:'desk', name:'UN-T8S', model:'Panasonic TV Tuner', specs:{Resolution:'1080i / 1920 x 1080',Output:'HDMI x1',Input:'USB x1 / LAN x1'}, tag:'VISUAL', note:'PanasonicのTVチューナー'},
+  {id:24, cat:'desk', name:'DMP-BD90S', model:'Panasonic BD Player', specs:{Resolution:'1080 / 60p',Disc:'BD, DVD, CD',Output:'HDMI x1'}, tag:'VISUAL', note:'PanasonicのTVチューナー'},
+];
+
+function makeCard(d) {
+  const isAppleStyling = d.isApple;
+  const card = document.createElement('div');
+  card.className = 'device-card' + (isAppleStyling?' apple-card':'');
+  card.innerHTML = `
+    <div class="device-num">// ${String(d.id).padStart(3,'0')}</div>
+    <div class="device-name">${d.name}</div>
+    <div class="device-model">${d.model}</div>
+    <div class="device-specs">
+      ${Object.entries(d.specs).slice(0,3).map(([k,v])=>`<div class="spec-row"><span class="spec-key">${k}</span><span class="spec-val">${v}</span></div>`).join('')}
+    </div>
+    <div class="device-tag">${d.tag}</div>
+    <div class="more-btn" onclick="openModal(${d.id},event)">
+      MORE<div class="more-dots"><span></span><span></span><span></span></div>
+    </div>
+  `;
+  return card;
+}
+
+const catMap = {
+  all: devices,
+  apple: devices.filter(d=>d.isApple),
+  pc: devices.filter(d=>d.cat==='pc'),
+  phone: devices.filter(d=>d.cat==='phone'),
+  tablet: devices.filter(d=>d.cat==='tablet'),
+  audio: devices.filter(d=>d.cat==='audio'),
+  charging: devices.filter(d=>d.cat==='charging'), // 追加
+  gadget: devices.filter(d=>d.cat==='gadget'),
+  desk: devices.filter(d=>d.cat==='desk')
+};
+Object.entries(catMap).forEach(([cat,list])=>{
+  const grid = document.getElementById(cat+'-grid');
+  if(!grid) return;
+  list.forEach(d=>grid.appendChild(makeCard(d)));
+});
+
+document.getElementById('total-count').textContent = `DEVICES: ${devices.length}`;
+
+// 統計セクションの生成部分
+const sc = document.getElementById('stats-cards');
+const counts = {};
+devices.forEach(d=>counts[d.cat]=(counts[d.cat]||0)+1);
+
+// deskを追加
+const categoryList = ['pc', 'phone', 'tablet', 'audio', 'charging', 'gadget', 'desk'];
+const activeCategoryCount = categoryList.filter(c => counts[c] > 0).length;
+
+[['TOTAL', devices.length], ['APPLE', devices.filter(d=>d.isApple).length], ['CATEGORIES', activeCategoryCount]].forEach(([l,n])=>{
+  sc.innerHTML+=`<div class="stat-card"><div class="stat-num">${n}</div><div class="stat-label">${l}</div></div>`;
+});
+const sb = document.getElementById('stats-bars');
+const labels = {
+  pc: 'PC/MAC',
+  phone: 'PHONE',
+  tablet: 'TABLET',
+  audio: 'AUDIO',
+  charging: 'CHARGING', // 追加
+  gadget: 'GADGET',
+  desk: 'DESK'
+};
+const maxC=Math.max(...Object.values(counts));
+Object.entries(labels).forEach(([cat,label])=>{
+  const c=counts[cat]||0;
+  sb.innerHTML+=`<div class="bar-row"><div class="bar-label">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(c/maxC*100)}%"></div></div><div class="bar-count">${c}</div></div>`;
+});
+
+function openModal(id,e){
+  if(e) e.stopPropagation();
+  const d=devices.find(x=>x.id===id);
+  if(!d) return;
+  const modal=document.getElementById('modal');
+  if(d.isApple) modal.classList.add('apple-modal'); else modal.classList.remove('apple-modal');
+  document.getElementById('m-num').textContent=`// ${String(d.id).padStart(3,'0')}`;
+  document.getElementById('m-name').textContent=d.name;
+  document.getElementById('m-model').textContent=d.model;
+  document.getElementById('m-body').innerHTML=`
+    <div class="modal-section-label">// SPECIFICATIONS</div>
+    <table class="modal-specs-table">
+      ${Object.entries(d.specs).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+    </table>
+    ${d.note?`<div class="modal-section-label" style="margin-top:1.25rem">// NOTE</div><div class="modal-note">${d.note}</div>`:''}
+    <div style="margin-top:1.25rem"><div class="modal-section-label">// CATEGORY TAG</div><div class="modal-tag">${d.tag}</div></div>
+  `;
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(e){if(e.target===document.getElementById('overlay'))closeModalDirect();}
+function closeModalDirect(){document.getElementById('overlay').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalDirect();});
+function showSection(name,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('visible');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
